@@ -1,0 +1,61 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1782723713,
+        "narHash": "sha256-oPXCU/SSUokcGaJREHibG1CBX3+s/W7orDWQOZDsEeQ=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b5aa0fbd538984f6e3d201be0005b4463d8b09f8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "pytanque-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776538811,
+        "narHash": "sha256-1Hae21BuMdE6MjRdiBO7fcsuS4HzahOdLLhynAUox3I=",
+        "owner": "LLM4Rocq",
+        "repo": "pytanque",
+        "rev": "4092b1238b56468fdc1b3d100e078791c9690fd4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LLM4Rocq",
+        "repo": "pytanque",
+        "type": "github"
+      }
+    },
+    "rocq-mcp-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1781874518,
+        "narHash": "sha256-qus34UYvNRIt2MYZp34t/i4SIHyK0etlvtOIWS3+jrA=",
+        "owner": "LLM4Rocq",
+        "repo": "rocq-mcp",
+        "rev": "d92fa9eaab78230a8b81f37b3a605672076ca22c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LLM4Rocq",
+        "repo": "rocq-mcp",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "pytanque-src": "pytanque-src",
+        "rocq-mcp-src": "rocq-mcp-src"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
