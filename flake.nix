@@ -135,7 +135,7 @@
 
         rocq-mcp = final.python312Packages.buildPythonApplication {
           pname = "rocq-mcp";
-          version = "0.2.0";
+          version = "0.3.1";
           pyproject = true;
           src = rocq-mcp-src;
           postPatch = ''
@@ -148,6 +148,7 @@
           dependencies = [
             final.python312Packages.fastmcp
             final.python312Packages.pytanque
+            final.python312Packages.psutil
           ];
           doCheck = false;
           pythonImportsCheck = [ "rocq_mcp" ];
