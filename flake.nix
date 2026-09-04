@@ -22,24 +22,17 @@
         python312 = prev.python312.override (old: {
           packageOverrides = prev.lib.composeExtensions (old.packageOverrides or (_: _: { })) (
             pyFinal: pyPrev: {
-              py-key-value-aio = pyPrev.py-key-value-aio.overridePythonAttrs (_: {
-                version = "0.4.4";
-                src = final.fetchFromGitHub {
-                  owner = "strawgate";
-                  repo = "py-key-value";
-                  tag = "0.4.4";
-                  hash = "sha256-JznZW3FOKlhZD42Ng108tNB4bNiEad7QBiu8RmflTXM=";
-                };
-                sourceRoot = null;
-                dependencies = [
-                  pyFinal.beartype
-                  pyFinal.typing-extensions
-                ];
+              # Test suite is sensitive to the exact black/formatter version and
+              # fails on nixos-unstable; inline-snapshot is only used as a build
+              # tool by mcp's hatch build hooks, never exercised at runtime.
+              inline-snapshot = pyPrev.inline-snapshot.overridePythonAttrs (_: {
                 doCheck = false;
-                disabledTestPaths = [ ];
-                disabledTests = [ ];
               });
 
+              # Kept as standalone PyPI builds (rather than nixpkgs' own
+              # griffelib/uncalled-for) to avoid pulling in nixpkgs' full
+              # mkdocs/mkdocstrings/backrefs doc-tooling chain, which has its
+              # own flaky tests unrelated to rocq-mcp.
               griffelib = pyFinal.buildPythonPackage rec {
                 pname = "griffelib";
                 version = "2.0.2";
@@ -82,6 +75,10 @@
                   inherit version;
                   hash = "sha256-CD7LdbRKQWnn/A9jL5S3gb2w/4d8azW5h3y7Vm/U1NE=";
                 };
+                # nixpkgs' patch targets its own bundled fastmcp source layout
+                # (fastmcp_slim/...), which doesn't exist in this pinned PyPI
+                # release.
+                patches = [ ];
                 dependencies = [
                   pyFinal.authlib
                   pyFinal.cyclopts
