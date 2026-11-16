@@ -3,6 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # nixpkgs PR #563493 (python3Packages.fastmcp: 3.4.7 -> 4.x). nixos-unstable
+    # ships mcp 2.x, and every fastmcp 3.x release requires mcp<2, so the
+    # fastmcp in nixos-unstable is currently marked broken. Drop this input and
+    # the openapi-pydantic / fastmcp-slim / fastmcp overrides below once the PR
+    # has landed in nixos-unstable.
+    nixpkgs-fastmcp4.url = "github:NixOS/nixpkgs/1bc434b7945cdc9aba1bb770a99ea78ad34fa65a";
+    nixpkgs-fastmcp4.flake = false;
     rocq-mcp-src.url = "github:LLM4Rocq/rocq-mcp";
     rocq-mcp-src.flake = false;
     pytanque-src.url = "github:LLM4Rocq/pytanque";
@@ -13,6 +20,7 @@
     {
       self,
       nixpkgs,
+      nixpkgs-fastmcp4,
       rocq-mcp-src,
       pytanque-src,
       ...
@@ -21,7 +29,11 @@
       overlays.default = final: prev: {
         python312 = prev.python312.override (old: {
           packageOverrides = prev.lib.composeExtensions (old.packageOverrides or (_: _: { })) (
-            pyFinal: pyPrev: {
+            pyFinal: pyPrev:
+            let
+              fastmcp4 = "${nixpkgs-fastmcp4}/pkgs/development/python-modules";
+            in
+            {
               # Test suite is sensitive to the exact black/formatter version and
               # fails on nixos-unstable; inline-snapshot is only used as a build
               # tool by mcp's hatch build hooks, never exercised at runtime.
@@ -29,88 +41,26 @@
                 doCheck = false;
               });
 
-              # Kept as standalone PyPI builds (rather than nixpkgs' own
-              # griffelib/uncalled-for) to avoid pulling in nixpkgs' full
-              # mkdocs/mkdocstrings/backrefs doc-tooling chain, which has its
-              # own flaky tests unrelated to rocq-mcp.
-              griffelib = pyFinal.buildPythonPackage rec {
-                pname = "griffelib";
-                version = "2.0.2";
-                pyproject = true;
-                src = final.fetchPypi {
-                  inherit pname version;
-                  hash = "sha256-PPILO8Rw6Ddj/78jbgB2sSEbrBvGfeE9r0lGQPLecH4=";
-                };
-                build-system = [
-                  pyFinal.hatchling
-                  pyFinal.pdm-backend
-                  pyFinal.uv-dynamic-versioning
-                ];
-                pythonImportsCheck = [ "griffe" ];
-                doCheck = false;
-              };
+              # fastmcp-slim 4.x requires openapi-pydantic>=0.6.0.
+              openapi-pydantic = pyFinal.callPackage "${fastmcp4}/openapi-pydantic/default.nix" { };
 
-              uncalled-for = pyFinal.buildPythonPackage rec {
-                pname = "uncalled_for";
-                version = "0.3.1";
-                pyproject = true;
-                src = final.fetchPypi {
-                  inherit pname version;
-                  hash = "sha256-XkEqxnCPBLVr71hntdz2aQ685OtzFgWNnFB4dJK7S8o=";
-                };
-                build-system = [
-                  pyFinal.hatchling
-                  pyFinal.hatch-vcs
-                ];
-                env.SETUPTOOLS_SCM_PRETEND_VERSION = version;
-                env.HATCH_BUILD_HOOK_VERSION = version;
-                pythonImportsCheck = [ "uncalled_for" ];
-                doCheck = false;
-              };
+              fastmcp-slim =
+                (pyFinal.callPackage "${fastmcp4}/fastmcp-slim/default.nix" {
+                  # Only needed by the `code-mode` extra, which rocq-mcp doesn't use.
+                  pydantic-monty_1 = null;
+                }).overridePythonAttrs
+                  (_: {
+                    doCheck = false;
+                  });
 
-              fastmcp = pyPrev.fastmcp.overridePythonAttrs (_: rec {
-                version = "3.2.4";
-                src = final.fetchPypi {
-                  pname = "fastmcp";
-                  inherit version;
-                  hash = "sha256-CD7LdbRKQWnn/A9jL5S3gb2w/4d8azW5h3y7Vm/U1NE=";
-                };
-                # nixpkgs' patch targets its own bundled fastmcp source layout
-                # (fastmcp_slim/...), which doesn't exist in this pinned PyPI
-                # release.
-                patches = [ ];
-                dependencies = [
-                  pyFinal.authlib
-                  pyFinal.cyclopts
-                  pyFinal.exceptiongroup
-                  pyFinal.griffelib
-                  pyFinal.httpx
-                  pyFinal.jsonref
-                  pyFinal.jsonschema-path
-                  pyFinal.mcp
-                  pyFinal.openapi-pydantic
-                  pyFinal.opentelemetry-api
-                  pyFinal.packaging
-                  pyFinal.platformdirs
-                  pyFinal.py-key-value-aio
-                  pyFinal.pydantic
-                  pyFinal.pyperclip
-                  pyFinal.python-dotenv
-                  pyFinal.pyyaml
-                  pyFinal.rich
-                  pyFinal.uncalled-for
-                  pyFinal.uvicorn
-                  pyFinal.watchfiles
-                  pyFinal.websockets
-                ]
-                ++ pyFinal.py-key-value-aio.optional-dependencies.filetree
-                ++ pyFinal.py-key-value-aio.optional-dependencies.keyring
-                ++ pyFinal.py-key-value-aio.optional-dependencies.memory
-                ++ pyFinal.pydantic.optional-dependencies.email;
-                doCheck = false;
-                disabledTests = [ ];
-                disabledTestPaths = [ ];
-              });
+              fastmcp =
+                (pyFinal.callPackage "${fastmcp4}/fastmcp/default.nix" {
+                  # Only needed by the `tasks` extra, which rocq-mcp doesn't use.
+                  fastmcp-tasks = null;
+                }).overridePythonAttrs
+                  (_: {
+                    doCheck = false;
+                  });
 
               pytanque = pyFinal.buildPythonPackage {
                 pname = "pytanque";

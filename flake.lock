@@ -16,6 +16,23 @@
         "type": "github"
       }
     },
+    "nixpkgs-fastmcp4": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793829292,
+        "narHash": "sha256-UksoPxOb6anwYw2z4+XzKKKMITFVLj/Pa3VuQp+V7No=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "1bc434b7945cdc9aba1bb770a99ea78ad34fa65a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "1bc434b7945cdc9aba1bb770a99ea78ad34fa65a",
+        "type": "github"
+      }
+    },
     "pytanque-src": {
       "flake": false,
       "locked": {
@@ -51,6 +68,7 @@
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
+        "nixpkgs-fastmcp4": "nixpkgs-fastmcp4",
         "pytanque-src": "pytanque-src",
         "rocq-mcp-src": "rocq-mcp-src"
       }
